@@ -39,7 +39,7 @@ class UpSample(nn.Module):
                 layers that will be applied
         """
         super().__init__()
-        n = 0 if n == c else int(math.log(c,2))
+        n = 0 if c == 0 else int(math.log(c,2))
 
         self.upsample = nn.ModuleList(
             [nn.ConvTranspose2d(in_channels,in_channels,2,2) for i in range(n)]
