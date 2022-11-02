@@ -1,42 +1,53 @@
 import torch
+import torch.nn as nn
 from elunet_parts import DoubleConv,DownSample,UpSample
 
 class ELUnet(nn.Module):
-    def __init__(self,in_channels,out_channels) -> None:
+    def __init__(self,in_channels,out_channels,n:int = 8) -> None:
+        """ 
+        Construct the Elu-net model.
+        Args:
+            in_channels: The number of color channels of the input image. 0:for binary 3: for RGB
+            out_channels: The number of color channels of the input mask, corresponds to the number
+                            of classes.Includes the background
+            n: Channels size of the first CNN in the encoder layer. The bigger this value the bigger 
+                the number of parameters of the model. Defaults to n = 8, which is recommended by the 
+                authors of the paper.
+        """
         super().__init__()
         # ------ Input convolution --------------
-        self.in_conv = DoubleConv(in_channels,64)
+        self.in_conv = DoubleConv(in_channels,n)
         # -------- Encoder ----------------------
-        self.down_1 = DownSample(64,128)
-        self.down_2 = DownSample(128,256)
-        self.down_3 = DownSample(256,512)
-        self.down_4 = DownSample(512,1024)
+        self.down_1 = DownSample(n,2*n)
+        self.down_2 = DownSample(2*n,4*n)
+        self.down_3 = DownSample(4*n,8*n)
+        self.down_4 = DownSample(8*n,16*n)
         
         # -------- Upsampling ------------------
-        self.up_1024_512 = UpSample(1024,512,2)
+        self.up_1024_512 = UpSample(16*n,8*n,2)
 
-        self.up_512_64 = UpSample(512,64,8)
-        self.up_512_128 = UpSample(512,128,4)
-        self.up_512_256 = UpSample(512,256,2)
-        self.up_512_512 = UpSample(512,512,0)
+        self.up_512_64 = UpSample(8*n,n,8)
+        self.up_512_128 = UpSample(8*n,2*n,4)
+        self.up_512_256 = UpSample(8*n,4*n,2)
+        self.up_512_512 = UpSample(8*n,8*n,0)
 
-        self.up_256_64 = UpSample(256,64,4)
-        self.up_256_128 = UpSample(256,128,2)
-        self.up_256_256 = UpSample(256,256,0)
+        self.up_256_64 = UpSample(4*n,n,4)
+        self.up_256_128 = UpSample(4*n,2*n,2)
+        self.up_256_256 = UpSample(4*n,4*n,0)
 
-        self.up_128_64 = UpSample(128,64,2)
-        self.up_128_128 = UpSample(128,128,0)
+        self.up_128_64 = UpSample(2*n,n,2)
+        self.up_128_128 = UpSample(2*n,2*n,0)
 
-        self.up_64_64 = UpSample(64,64,0)
+        self.up_64_64 = UpSample(n,n,0)
      
         # ------ Decoder block ---------------
-        self.dec_4 = DoubleConv(1024,512)
-        self.dec_3 = DoubleConv(768,256)
-        self.dec_2 = DoubleConv(512,128)
-        self.dec_1 = DoubleConv(320,64)
+        self.dec_4 = DoubleConv(2*8*n,8*n)
+        self.dec_3 = DoubleConv(3*4*n,4*n)
+        self.dec_2 = DoubleConv(4*2*n,2*n)
+        self.dec_1 = DoubleConv(5*n,n)
         # ------ Output convolution
 
-        self.out_conv = DoubleConv(64,out_channels)
+        self.out_conv = DoubleConv(n,out_channels)
 
     def forward(self,x):
         x = self.in_conv(x) # 64
