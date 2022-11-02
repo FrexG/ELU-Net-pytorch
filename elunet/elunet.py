@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from elunet_parts import DoubleConv,DownSample,UpSample
+from elunet_parts import DoubleConv,DownSample,UpSample,OutConv
 
 class ELUnet(nn.Module):
     def __init__(self,in_channels,out_channels,n:int = 8) -> None:
@@ -47,7 +47,7 @@ class ELUnet(nn.Module):
         self.dec_1 = DoubleConv(5*n,n)
         # ------ Output convolution
 
-        self.out_conv = DoubleConv(n,out_channels)
+        self.out_conv = OutConv(n,out_channels)
 
     def forward(self,x):
         x = self.in_conv(x) # 64
