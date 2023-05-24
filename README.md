@@ -18,6 +18,6 @@ from elunet import ELUnet
 # for an RGB input and binary mask output
 elunet = ELUnet(3,1,8)
 
-# for an RGB input and e channel mask output
+# for an RGB input and 3 channel mask output
 elunet = ELUnet(3,3,8)
 ```
