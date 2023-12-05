@@ -11,13 +11,27 @@ U-Net (ELU-Net) with deep skip connections." with main contributions being:
 ![blocks](/img/blocks.png)
 ![values](/img/ELUnet.drawio.png)
 
+## Requirements
+- `python > 3.10`
+- `pytorch > 1.7.`
+
 ## Usage
 ``` python
+import torch
 from elunet import ELUnet
 
-# for an RGB input and binary mask output
-elunet = ELUnet(3,1,8)
+device = "cuda" if torch.cuda.is_available() else "cpu"
+# for an RGB input and a single class output + background 
+x = torch.randn(1,3,256,256).to(device) # B,C,W,H
+elunet = ELUnet(3,1,8).to(device)
+out = elunet(x)
+logits = torch.sigmoid(out)
 
-# for an RGB input and 3 channel mask output
-elunet = ELUnet(3,3,8)
+# for an RGB input and 2 class output + background
+x = torch.randn(1,3,256,256).to(device) # B,C,W,H
+elunet = ELUnet(3,3,8).to(device)
+out = elunet(x)
+logits = torch.softmax(out,dim=1) # C
+# to get grayscale mask
+mask = torch.argmax(logits,dim=1,keepdims=True)
 ```
